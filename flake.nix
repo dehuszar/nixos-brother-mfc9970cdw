@@ -39,6 +39,24 @@
             example = "home office";
             description = "Human-readable location label for the printer.";
           };
+
+          enableScanner = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = ''
+              Enable scanning support for the Brother MFC-9970CDW.
+              Uses sane-airscan (eSCL/AirScan protocol) by default.
+            '';
+          };
+
+          scannerBackend = lib.mkOption {
+            type = lib.types.enum [ "airscan" "brscan5" ];
+            default = "airscan";
+            description = ''
+              Scanner backend to use. `airscan` (eSCL/AirScan, recommended) or
+              `brscan5` (Brother proprietary driver).
+            '';
+          };
         };
 
         config = lib.mkIf cfg.enable {
@@ -58,6 +76,19 @@
                 };
               }
             ];
+          };
+
+          hardware.sane = lib.mkIf cfg.enableScanner {
+            enable = true;
+            extraBackends = [
+              (if cfg.scannerBackend == "airscan" then pkgs.sane-airscan else pkgs.brscan5)
+            ];
+            # For brscan5: tell the driver where to find the scanner on the network.
+            extraConfig = lib.mkIf (cfg.scannerBackend == "brscan5") {
+              brother5 = ''
+                net Brother_MFC-9970CDW ${cfg.ipAddress}
+              '';
+            };
           };
         };
       };
