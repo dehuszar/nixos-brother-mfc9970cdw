@@ -84,6 +84,13 @@
               (if cfg.scannerBackend == "airscan" then pkgs.sane-airscan else pkgs.brscan5)
             ];
           };
+
+          # brscan5 needs its network scanner list declared in sane.d/brother5.conf.
+          environment.etc = lib.mkIf (cfg.enableScanner && cfg.scannerBackend == "brscan5") {
+            "sane.d/brother5.conf".text = ''
+              net Brother_MFC-9970CDW ${cfg.ipAddress}
+            '';
+          };
         };
       };
   };
