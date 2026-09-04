@@ -83,12 +83,6 @@
             extraBackends = [
               (if cfg.scannerBackend == "airscan" then pkgs.sane-airscan else pkgs.brscan5)
             ];
-            # For brscan5: tell the driver where to find the scanner on the network.
-            extraConfig = lib.mkIf (cfg.scannerBackend == "brscan5") {
-              brother5 = ''
-                net Brother_MFC-9970CDW ${cfg.ipAddress}
-              '';
-            };
           };
         };
       };
