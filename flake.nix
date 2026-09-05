@@ -86,9 +86,18 @@
           };
 
           # brscan5 needs its network scanner list declared in sane.d/brother5.conf.
+          # It also needs its own internal device config at /etc/opt/brother/scanner/brscan5/.
           environment.etc = lib.mkIf (cfg.enableScanner && cfg.scannerBackend == "brscan5") {
             "sane.d/brother5.conf".text = ''
               net Brother_MFC-9970CDW ${cfg.ipAddress}
+            '';
+            "opt/brother/scanner/brscan5/brscan5.conf".text = ''
+              [Device]
+              Model  = MFC-9970CDW
+              Name   = Brother_MFC-9970CDW
+              IP     = ${cfg.ipAddress}
+              Node   = "/dev/usb/scanner0"
+              Type   = 3
             '';
           };
         };
