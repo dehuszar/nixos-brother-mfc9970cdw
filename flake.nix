@@ -119,6 +119,21 @@
               ];
             };
 
+            # SANE reads dll.d from the sane-backends package, not from /etc.
+            # We need to create /etc/sane.d/dll.d/brother4 so scanimage loads
+            # the brother4 backend library.
+            environment.etc = lib.mkIf cfg.enableScanner {
+              "sane.d/dll.d/brother4" = lib.mkIf (cfg.scannerBackend == "brscan4") {
+                text = "brother4\n";
+              };
+              "sane.d/dll.d/brother5" = lib.mkIf (cfg.scannerBackend == "brscan5") {
+                text = "brother5\n";
+              };
+              "sane.d/dll.d/airscan" = lib.mkIf (cfg.scannerBackend == "airscan") {
+                text = "airscan\n";
+              };
+            };
+
             # Brother's proprietary SANE backends need support files at
             # /opt/brother/scanner/brscanN/. We symlink individual files from
             # the extracted driver so we can also write the device config there.
