@@ -50,11 +50,11 @@
           };
 
           scannerBackend = lib.mkOption {
-            type = lib.types.enum [ "airscan" "brscan5" ];
+            type = lib.types.enum [ "airscan" "brscan4" "brscan5" ];
             default = "airscan";
             description = ''
               Scanner backend to use. `airscan` (eSCL/AirScan, recommended) or
-              `brscan5` (Brother proprietary driver).
+              `brscan4` / `brscan5` (Brother proprietary drivers).
             '';
           };
         };
@@ -81,24 +81,41 @@
           hardware.sane = lib.mkIf cfg.enableScanner {
             enable = true;
             extraBackends = [
-              (if cfg.scannerBackend == "airscan" then pkgs.sane-airscan else pkgs.brscan5)
+              (if cfg.scannerBackend == "airscan" then pkgs.sane-airscan
+               else if cfg.scannerBackend == "brscan4" then pkgs.brscan4
+               else pkgs.brscan5)
             ];
           };
 
-          # brscan5 needs its network scanner list declared in sane.d/brother5.conf.
-          # It also needs its own internal device config at /etc/opt/brother/scanner/brscan5/.
-          environment.etc = lib.mkIf (cfg.enableScanner && cfg.scannerBackend == "brscan5") {
-            "sane.d/brother5.conf".text = ''
-              net Brother_MFC-9970CDW ${cfg.ipAddress}
-            '';
-            "opt/brother/scanner/brscan5/brscan5.conf".text = ''
-              [Device]
-              Model  = MFC-9970CDW
-              Name   = Brother_MFC-9970CDW
-              IP     = ${cfg.ipAddress}
-              Node   = "/dev/usb/scanner0"
-              Type   = 3
-            '';
+          # Brother's proprietary scanner drivers expect config files under
+          # /etc/opt/brother/scanner/ — we create them declaratively since the
+          # bundled brsaneconfigN tools can't write to /etc/opt on NixOS.
+          environment.etc = lib.mkIf cfg.enableScanner {
+            "sane.d/brother4.conf" = lib.mkIf (cfg.scannerBackend == "brscan4") {
+              text = ''
+                net Brother_MFC-9970CDW ${cfg.ipAddress}
+              '';
+            };
+            "opt/brother/scanner/brscan4/brsanenetdevice4.cfg" = lib.mkIf (cfg.scannerBackend == "brscan4") {
+              text = ''
+                DEV=eth,0,"Brother_MFC-9970CDW",${cfg.ipAddress},"MFC-9970CDW"
+              '';
+            };
+            "sane.d/brother5.conf" = lib.mkIf (cfg.scannerBackend == "brscan5") {
+              text = ''
+                net Brother_MFC-9970CDW ${cfg.ipAddress}
+              '';
+            };
+            "opt/brother/scanner/brscan5/brscan5.conf" = lib.mkIf (cfg.scannerBackend == "brscan5") {
+              text = ''
+                [Device]
+                Model  = MFC-9970CDW
+                Name   = Brother_MFC-9970CDW
+                IP     = ${cfg.ipAddress}
+                Node   = "/dev/usb/scanner0"
+                Type   = 3
+              '';
+            };
           };
         };
       };
