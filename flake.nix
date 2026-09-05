@@ -23,9 +23,9 @@
           nativeBuildInputs = [ pkgs.dpkg ];
         } ''
           dpkg-deb -x ${brscan4Src pkgs} $out
-          mkdir -p $out/lib $out/etc/sane.d/dll.d
-          ln -s $out/usr/lib64/sane $out/lib/sane
-          echo brother4 > $out/etc/sane.d/dll.d/brother4.conf
+          mkdir -p $out/lib/sane $out/etc/sane.d/dll.d
+          cp $out/usr/lib64/sane/libsane-brother4.so* $out/lib/sane/
+          echo brother4 > $out/etc/sane.d/dll.d/brother4
         '';
     in
     {
@@ -119,26 +119,15 @@
               ];
             };
 
-            # SANE reads dll.d from the sane-backends store path. The
-            # hardware.sane module creates a sane-config package that includes
-            # all backends, but scanimage from simple-scan's sane-backends dep
-            # doesn't use it. We write a combined dll.conf to /etc/sane.d
-            # and tell SANE to look there via SANE_CONFIG_DIR.
+            # The hardware.sane module creates its own sane-config package and
+            # sets SANE_CONFIG_DIR to /etc/sane-config. Our brscan4Pkg provides
+            # the backend library + dll.d entry that gets merged into it.
             environment.etc = lib.mkIf cfg.enableScanner {
-              "sane.d/dll.conf" = {
-                text =
-                  let
-                    saneDllConf = builtins.readFile "${pkgs.sane-backends}/etc/sane.d/dll.conf";
-                    backend = if cfg.scannerBackend == "brscan4" then "brother4"
-                      else if cfg.scannerBackend == "brscan5" then "brother5"
-                      else "airscan";
-                  in
-                    saneDllConf + "\n" + backend + "\n";
+              "sane.d/brother4.conf" = lib.mkIf (cfg.scannerBackend == "brscan4") {
+                text = ''
+                  net Brother_MFC-9970CDW ${cfg.ipAddress}
+                '';
               };
-            };
-
-            environment.sessionVariables = lib.mkIf cfg.enableScanner {
-              SANE_CONFIG_DIR = "/etc/sane.d";
             };
 
             # Brother's proprietary SANE backends need support files at
