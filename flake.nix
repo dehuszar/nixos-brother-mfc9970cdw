@@ -88,12 +88,29 @@
           };
 
           # Brother's proprietary SANE backends look for support files at
-          # /opt/brother/scanner/brscanN/ — symlink there from the store.
+          # /opt/brother/scanner/brscanN/ — symlink them individually so
+          # we can still write the device config there.
           systemd.tmpfiles.rules = lib.mkIf cfg.enableScanner (
-            if cfg.scannerBackend == "brscan4" then [
-              "L /opt/brother/scanner/brscan4 - - - - ${pkgs.brscan4}/opt/brother/scanner/brscan4"
-            ] else if cfg.scannerBackend == "brscan5" then [
-              "L /opt/brother/scanner/brscan5 - - - - ${pkgs.brscan5}/opt/brother/scanner/brscan5"
+            if cfg.scannerBackend == "brscan4" then let
+              src = "${pkgs.brscan4}/opt/brother/scanner/brscan4";
+            in [
+              "d /opt/brother/scanner/brscan4 0755 root root -"
+              "L+ /opt/brother/scanner/brscan4/Brsane4.ini - - - - ${src}/Brsane4.ini"
+              "L+ /opt/brother/scanner/brscan4/models4 - - - - ${src}/models4"
+              "L+ /opt/brother/scanner/brscan4/doc - - - - ${src}/doc"
+              "L+ /opt/brother/scanner/brscan4/brscan_cnetconfig - - - - ${src}/brscan_cnetconfig"
+              "L+ /opt/brother/scanner/brscan4/brscan_gnetconfig - - - - ${src}/brscan_gnetconfig"
+              "L+ /opt/brother/scanner/brscan4/setupSaneScan4 - - - - ${src}/setupSaneScan4"
+              "L+ /opt/brother/scanner/brscan4/udev_config.sh - - - - ${src}/udev_config.sh"
+              "L+ /opt/brother/scanner/brscan4/brsaneconfig4 - - - - ${src}/brsaneconfig4"
+              "f+ /opt/brother/scanner/brscan4/brsanenetdevice4.cfg 0644 root root - DEV=eth,0,\"Brother_MFC-9970CDW\",${cfg.ipAddress},\"MFC-9970CDW\"\n"
+            ] else if cfg.scannerBackend == "brscan5" then let
+              src = "${pkgs.brscan5}/opt/brother/scanner/brscan5";
+            in [
+              "d /opt/brother/scanner/brscan5 0755 root root -"
+              "L+ /opt/brother/scanner/brscan5/Brsane5.ini - - - - ${src}/Brsane5.ini"
+              "L+ /opt/brother/scanner/brscan5/models5 - - - - ${src}/models5"
+              "f+ /opt/brother/scanner/brscan5/brsanenetdevice5.cfg 0644 root root - DEV=eth,0,\"Brother_MFC-9970CDW\",${cfg.ipAddress},\"MFC-9970CDW\"\n"
             ] else []
           );
 
