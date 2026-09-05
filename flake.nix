@@ -16,12 +16,16 @@
         sha256 = "sha256-AntzZIcirIyOsanEGdKEplYsx2P+rJdAordaaDsJKXI=";  # Fill in after first build (Nix will print the expected hash).
       };
 
-      # Extracted .deb contents, ready for use as a Nix package.
+      # Extracted .deb contents with SANE library relocated to the standard
+      # $out/lib/sane/ path expected by hardware.sane.extraBackends.
       brscan4Drv = pkgs:
         pkgs.runCommand "brscan4-official-0.4.11-1" {
           nativeBuildInputs = [ pkgs.dpkg ];
         } ''
           dpkg-deb -x ${brscan4Src pkgs} $out
+          mkdir -p $out/lib $out/etc/sane.d/dll.d
+          ln -s $out/usr/lib64/sane $out/lib/sane
+          echo brother4 > $out/etc/sane.d/dll.d/brother4.conf
         '';
     in
     {
