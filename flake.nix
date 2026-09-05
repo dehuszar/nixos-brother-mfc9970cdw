@@ -24,7 +24,8 @@
         } ''
           dpkg-deb -x ${brscan4Src pkgs} $out
           mkdir -p $out/lib/sane $out/etc/sane.d/dll.d
-          cp $out/opt/brother/scanner/brscan4/libsane-brother4.so* $out/lib/sane/
+          cp -a $out/usr/lib64/sane $out/lib/sane-copy
+          mv $out/lib/sane-copy $out/lib/sane
           echo brother4 > $out/etc/sane.d/dll.d/brother4
         '';
     in
