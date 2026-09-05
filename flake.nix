@@ -13,7 +13,7 @@
       #   nix-prefetch-url https://download.brother.com/welcome/dlf105200/brscan4-0.4.11-1.amd64.deb
       brscan4Src = nixpkgs: nixpkgs.fetchurl {
         url = "https://download.brother.com/welcome/dlf105200/brscan4-0.4.11-1.amd64.deb";
-        sha256 = "";  # Fill in after first build (Nix will print the expected hash).
+        sha256 = "sha256-AntzZIcirIyOsanEGdKEplYsx2P+rJdAordaaDsJKXI=";  # Fill in after first build (Nix will print the expected hash).
       };
 
       # Extracted .deb contents, ready for use as a Nix package.
