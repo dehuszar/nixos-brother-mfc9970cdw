@@ -87,6 +87,16 @@
             ];
           };
 
+          # Brother's proprietary SANE backends look for support files at
+          # /opt/brother/scanner/brscanN/ — symlink there from the store.
+          systemd.tmpfiles.rules = lib.mkIf cfg.enableScanner (
+            if cfg.scannerBackend == "brscan4" then [
+              "L /opt/brother/scanner/brscan4 - - - - ${pkgs.brscan4}/opt/brother/scanner/brscan4"
+            ] else if cfg.scannerBackend == "brscan5" then [
+              "L /opt/brother/scanner/brscan5 - - - - ${pkgs.brscan5}/opt/brother/scanner/brscan5"
+            ] else []
+          );
+
           # Brother's proprietary scanner drivers expect config files under
           # /etc/opt/brother/scanner/ — we create them declaratively since the
           # bundled brsaneconfigN tools can't write to /etc/opt on NixOS.
